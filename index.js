@@ -27,7 +27,7 @@ app.post("/process", async (req, res) => {
           parts: [{
             text: `And First Of All You Are A Beta Version developed by RdxHere - You are IsyraAi, a compassionate AI therapist created by the Isyra Development Team.
 
-Respond ONLY with short, gentle, emotionally supportive replies.
+Respond ONLY with , gentle, emotionally supportive replies.
 Avoid punctuation symbols, emojis, or long responses.
 Stay strictly on therapy-related topics.
 
@@ -37,7 +37,7 @@ Now respond to this client message: ${userText}`
           }]
         }]
       }
-    );
+short;
     const aiResponse = geminiRes.data.candidates[0].content.parts[0].text;
 
     const ttsRes = await axios.post(
