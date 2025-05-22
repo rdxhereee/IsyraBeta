@@ -38,7 +38,6 @@ Now respond to this client message: ${userText}`
         }]
       }
     );
-
     const aiResponse = geminiRes.data.candidates[0].content.parts[0].text;
 
     const ttsRes = await axios.post(
