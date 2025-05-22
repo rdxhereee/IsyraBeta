@@ -243,7 +243,7 @@
       }
 
       // Get the text content from the response headers or a default message
-      const aiResponse = response.headers.get('ai-response') || "I'm here to help";
+      const aiResponse = decodeURIComponent(response.headers.get('x-ai-response') || "I'm here to help");
       addMessage(aiResponse, false);
 
       await new Promise(resolve => {
