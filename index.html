@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IsyraAi - Voice Therapist</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f4ff;
+      flex-direction: column;
+    }
+
+    .orb {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #c5a8ff, #a6d3ff);
+      animation: pulse 1.5s infinite alternate;
+      box-shadow: 0 0 30px rgba(100, 100, 255, 0.5);
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .orb.listening {
+      transform: scale(1.1);
+      box-shadow: 0 0 50px rgba(120, 90, 255, 0.8);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.9; }
+      100% { transform: scale(1.05); opacity: 1; }
+    }
+
+    .controls button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #5b5fc7;
+      color: white;
+      cursor: pointer;
+    }
+
+    .status {
+      font-size: 1.1em;
+      color: #333;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="orb" id="orb"></div>
+
+  <div class="controls">
+    <button id="sessionToggle">Start Session</button>
+  </div>
+
+  <div class="status" id="statusText">Session idle.</div>
+
+  <script>
+    const orb = document.getElementById("orb");
+    const sessionBtn = document.getElementById("sessionToggle");
+    const statusText = document.getElementById("statusText");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.continuous = true;
+
+    let sessionActive = false;
+    let isProcessing = false;
+    let audio = null;
+
+    async function processTranscript(text) {
+      isProcessing = true;
+      statusText.textContent = `You said: "${text}"`;
+      const response = await fetch("/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      const blob = await response.blob();
+      const audioURL = URL.createObjectURL(blob);
+      audio = new Audio(audioURL);
+
+      statusText.textContent = "Responding...";
+      orb.classList.remove("listening");
+
+      await new Promise(resolve => {
+        audio.onended = resolve;
+        audio.onerror = resolve;
+        audio.play();
+      });
+
+      isProcessing = false;
+      if (sessionActive) {
+        listen();
+      }
+    }
+
+    function listen() {
+      if (!sessionActive || isProcessing) return;
+      recognition.start();
+      orb.classList.add("listening");
+      statusText.textContent = "Listening...";
+    }
+
+    recognition.onresult = async (event) => {
+      if (!sessionActive || isProcessing) return;
+      const text = event.results[event.results.length - 1][0].transcript;
+      recognition.stop();
+      await processTranscript(text);
+    };
+
+    recognition.onend = () => {
+      if (sessionActive && !isProcessing) {
+        setTimeout(() => listen(), 300);
+      }
+    };
+
+    recognition.onerror = (e) => {
+      statusText.textContent = "Mic error: " + e.error;
+      orb.classList.remove("listening");
+    };
+
+    sessionBtn.onclick = () => {
+      sessionActive = !sessionActive;
+      if (sessionActive) {
+        sessionBtn.textContent = "End Session";
+        listen();
+        statusText.textContent = "Session started. Listening...";
+      } else {
+        sessionBtn.textContent = "Start Session";
+        recognition.abort();
+        orb.classList.remove("listening");
+        if (audio) audio.pause();
+        statusText.textContent = "Session ended.";
+      }
+    };
+  </script>
+</body>
+</html>
