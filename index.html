@@ -1,70 +1,140 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>IsyraAi - Voice Therapist</title>
+  <title>IsyraAI - Voice Therapist</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #f4f4ff;
-      flex-direction: column;
     }
 
-    .orb {
+    .container {
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .wave-container {
+      position: relative;
       width: 200px;
       height: 200px;
+      margin: 2rem auto;
+    }
+
+    .wave {
+      position: absolute;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
-      background: radial-gradient(circle, #c5a8ff, #a6d3ff);
-      animation: pulse 1.5s infinite alternate;
-      box-shadow: 0 0 30px rgba(100, 100, 255, 0.5);
-      margin-bottom: 20px;
-      transition: transform 0.3s ease;
+      background: rgba(100, 149, 237, 0.2);
+      animation: wave 2s infinite;
     }
 
-    .orb.listening {
-      transform: scale(1.1);
-      box-shadow: 0 0 50px rgba(120, 90, 255, 0.8);
+    .wave:nth-child(2) { animation-delay: 0.3s; }
+    .wave:nth-child(3) { animation-delay: 0.6s; }
+
+    @keyframes wave {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
     }
 
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.9; }
-      100% { transform: scale(1.05); opacity: 1; }
+    .core {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background: cornflowerblue;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: all 0.3s ease;
     }
 
-    .controls button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 5px;
-      background: #5b5fc7;
-      color: white;
-      cursor: pointer;
+    .listening .core {
+      background: #ff6b6b;
+      box-shadow: 0 0 30px #ff6b6b;
     }
 
     .status {
-      font-size: 1.1em;
-      color: #333;
-      margin-top: 10px;
+      margin: 1.5rem 0;
+      font-size: 1.2rem;
+      color: #a0a0a0;
+      min-height: 2em;
+    }
+
+    .btn {
+      background: cornflowerblue;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(100, 149, 237, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 149, 237, 0.4);
+    }
+
+    .btn.active {
+      background: #ff6b6b;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, #fff, #a0a0a0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>IsyraAI Therapist</h1>
+    
+    <div class="wave-container" id="waveContainer">
+      <div class="wave"></div>
+      <div class="wave"></div>
+      <div class="wave"></div>
+      <div class="core"></div>
+    </div>
 
-  <div class="orb" id="orb"></div>
-
-  <div class="controls">
-    <button id="sessionToggle">Start Session</button>
+    <div class="status" id="statusText">Ready to start your session</div>
+    
+    <button class="btn" id="sessionToggle">Start Session</button>
   </div>
 
-  <div class="status" id="statusText">Session idle.</div>
-
   <script>
-    const orb = document.getElementById("orb");
+    const waveContainer = document.getElementById("waveContainer");
     const sessionBtn = document.getElementById("sessionToggle");
     const statusText = document.getElementById("statusText");
 
@@ -80,7 +150,7 @@
 
     async function processTranscript(text) {
       isProcessing = true;
-      statusText.textContent = `You said: "${text}"`;
+      statusText.textContent = `Processing: "${text}"`;
       const response = await fetch("/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,8 +161,8 @@
       const audioURL = URL.createObjectURL(blob);
       audio = new Audio(audioURL);
 
-      statusText.textContent = "Responding...";
-      orb.classList.remove("listening");
+      statusText.textContent = "AI is responding...";
+      waveContainer.classList.remove("listening");
 
       await new Promise(resolve => {
         audio.onended = resolve;
@@ -109,8 +179,8 @@
     function listen() {
       if (!sessionActive || isProcessing) return;
       recognition.start();
-      orb.classList.add("listening");
-      statusText.textContent = "Listening...";
+      waveContainer.classList.add("listening");
+      statusText.textContent = "Listening to you...";
     }
 
     recognition.onresult = async (event) => {
@@ -127,22 +197,23 @@
     };
 
     recognition.onerror = (e) => {
-      statusText.textContent = "Mic error: " + e.error;
-      orb.classList.remove("listening");
+      statusText.textContent = "Microphone error: " + e.error;
+      waveContainer.classList.remove("listening");
     };
 
     sessionBtn.onclick = () => {
       sessionActive = !sessionActive;
       if (sessionActive) {
         sessionBtn.textContent = "End Session";
+        sessionBtn.classList.add("active");
         listen();
-        statusText.textContent = "Session started. Listening...";
       } else {
         sessionBtn.textContent = "Start Session";
+        sessionBtn.classList.remove("active");
         recognition.abort();
-        orb.classList.remove("listening");
+        waveContainer.classList.remove("listening");
         if (audio) audio.pause();
-        statusText.textContent = "Session ended.";
+        statusText.textContent = "Session ended";
       }
     };
   </script>
