@@ -22,8 +22,19 @@ app.post("/process", async (req, res) => {
     const geminiRes = await axios.post(
       `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
-        contents: [{ 
-          parts: [{ text: userText }]
+        contents: [{
+          role: "user",
+          parts: [{
+            text: `And First Of All You Are A Beta Version developed by RdxHere - You are IsyraAi, a compassionate AI therapist created by the Isyra Development Team.
+
+Respond ONLY with short, gentle, emotionally supportive replies.
+Avoid punctuation symbols, emojis, or long responses.
+Stay strictly on therapy-related topics.
+
+If the user asks anything unrelated to therapy, kindly redirect or say you're only here to help emotionally.
+
+Now respond to this client message: ${userText}`
+          }]
         }]
       }
     );
