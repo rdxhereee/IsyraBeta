@@ -456,30 +456,52 @@
       }
     });
 
+    let recognitionActive = false;
+
     function listen() {
-      if (!sessionActive || isProcessing) return;
-      recognition.start();
-      orbContainer.classList.add("listening");
-      statusText.textContent = "Listening to you...";
+      if (!sessionActive || isProcessing || recognitionActive) return;
+      try {
+        recognition.start();
+        recognitionActive = true;
+        orbContainer.classList.add("listening");
+        statusText.textContent = "Listening to you...";
+      } catch (error) {
+        console.error("Recognition start error:", error);
+        recognitionActive = false;
+        statusText.textContent = "Please try again...";
+        setTimeout(() => listen(), 1000);
+      }
     }
 
     recognition.onresult = async (event) => {
       if (!sessionActive || isProcessing) return;
       const text = event.results[event.results.length - 1][0].transcript;
       recognition.stop();
+      recognitionActive = false;
       await processMessage(text, true);
     };
 
     recognition.onend = () => {
+      recognitionActive = false;
       if (sessionActive && !isProcessing) {
-        setTimeout(() => listen(), 300);
+        setTimeout(() => listen(), 1000);
       }
     };
 
     recognition.onerror = (e) => {
       console.error("Recognition error:", e);
-      statusText.textContent = "Microphone error: " + e.error;
+      recognitionActive = false;
       orbContainer.classList.remove("listening");
+      
+      if (e.error === 'aborted') {
+        statusText.textContent = "Voice recognition was interrupted. Restarting...";
+      } else {
+        statusText.textContent = "Microphone error: " + e.error;
+      }
+      
+      if (sessionActive && !isProcessing) {
+        setTimeout(() => listen(), 1000);
+      }
     };
 
     document.getElementById('interruptBtn').onclick = () => {
