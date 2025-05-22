@@ -34,6 +34,7 @@
       display: flex;
       flex-direction: column;
       min-height: 50vh;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     @media (min-width: 768px) {
@@ -41,6 +42,8 @@
         width: 300px;
         min-height: 100vh;
         padding: 2rem;
+        border-bottom: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
       }
     }
 
@@ -52,13 +55,67 @@
       align-items: center;
       justify-content: center;
       min-height: 50vh;
+      position: relative;
+      overflow: hidden;
     }
 
-    @media (min-width: 768px) {
-      .main-content {
-        min-height: 100vh;
-        padding: 2rem;
+    .orb-container {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      margin: 2rem auto;
+    }
+
+    .orb {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, cornflowerblue, #1a1a2e);
+      box-shadow: 0 0 30px rgba(100, 149, 237, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .orb-particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transform-origin: center;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      animation: float 3s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.8;
       }
+      50% {
+        transform: translateY(-20px) scale(0.8);
+        opacity: 0;
+      }
+    }
+
+    .listening .orb {
+      transform: scale(1.1);
+      background: radial-gradient(circle at 30% 30%, #ff6b6b, #1a1a2e);
+      box-shadow: 0 0 50px rgba(255, 107, 107, 0.4);
+    }
+
+    .listening .orb-particles {
+      animation: rotate 2s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .chat-container {
@@ -70,33 +127,37 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-    }
-
-    @media (min-width: 768px) {
-      .chat-container {
-        height: 60vh;
-      }
+      backdrop-filter: blur(10px);
     }
 
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 0.8rem;
-      -webkit-overflow-scrolling: touch;
+      padding: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
     }
 
     .message {
       margin: 0.5rem 0;
-      padding: 0.8rem;
-      border-radius: 10px;
+      padding: 1rem;
+      border-radius: 15px;
       max-width: 85%;
-      word-break: break-word;
+      animation: fadeIn 0.3s ease;
     }
 
-    @media (min-width: 768px) {
-      .message {
-        max-width: 80%;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .user-message {
@@ -105,7 +166,7 @@
     }
 
     .ai-message {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       margin-right: auto;
     }
 
@@ -113,16 +174,22 @@
       display: flex;
       padding: 1rem;
       background: rgba(255, 255, 255, 0.05);
+      gap: 10px;
     }
 
     .chat-input input {
       flex: 1;
-      padding: 0.8rem;
+      padding: 0.8rem 1.2rem;
       border: none;
       border-radius: 25px;
       background: rgba(255, 255, 255, 0.1);
       color: white;
-      margin-right: 1rem;
+      font-size: 16px;
+    }
+
+    .chat-input input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .chat-input button {
@@ -132,83 +199,48 @@
       background: cornflowerblue;
       color: white;
       cursor: pointer;
-    }
-
-    .wave-container {
-      width: 150px;
-      height: 150px;
-      margin: 2rem auto;
-      position: relative;
-    }
-
-    .wave {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: rgba(100, 149, 237, 0.2);
-      animation: wave 2s infinite;
-    }
-
-    .wave:nth-child(2) { animation-delay: 0.3s; }
-    .wave:nth-child(3) { animation-delay: 0.6s; }
-
-    @keyframes wave {
-      0% {
-        transform: scale(0.8);
-        opacity: 0.8;
-      }
-      100% {
-        transform: scale(1.5);
-        opacity: 0;
-      }
-    }
-
-    .core {
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      background: cornflowerblue;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       transition: all 0.3s ease;
     }
 
-    .listening .core {
-      background: #ff6b6b;
-      box-shadow: 0 0 30px #ff6b6b;
+    .chat-input button:hover {
+      background: #4f7fd9;
+      transform: translateY(-2px);
     }
 
     .status {
       text-align: center;
       margin: 1rem 0;
       color: #a0a0a0;
+      font-size: 0.9rem;
+      height: 20px;
     }
 
     .btn {
       background: cornflowerblue;
       color: white;
       border: none;
-      padding: 1rem;
+      padding: 1rem 2rem;
       font-size: 1rem;
       border-radius: 30px;
       cursor: pointer;
       transition: all 0.3s ease;
+      margin-top: 1rem;
     }
 
     .btn:hover {
       transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(100, 149, 237, 0.3);
     }
 
     .btn.active {
       background: #ff6b6b;
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
     }
 
     h1 {
       text-align: center;
       margin-bottom: 2rem;
+      font-size: 2rem;
       background: linear-gradient(45deg, #fff, #a0a0a0);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -228,22 +260,31 @@
   </div>
 
   <div class="main-content">
-    <div class="wave-container" id="waveContainer">
-      <div class="wave"></div>
-      <div class="wave"></div>
-      <div class="wave"></div>
-      <div class="core"></div>
+    <div class="orb-container" id="orbContainer">
+      <div class="orb"></div>
+      <div class="orb-particles" id="orbParticles"></div>
     </div>
     <div class="status" id="statusText">Ready to start your session</div>
     <button class="btn" id="sessionToggle">Start Voice Session</button>
   </div>
 
   <script>
-    const waveContainer = document.getElementById("waveContainer");
+    const orbContainer = document.getElementById("orbContainer");
+    const orbParticles = document.getElementById("orbParticles");
     const sessionBtn = document.getElementById("sessionToggle");
     const statusText = document.getElementById("statusText");
     const chatMessages = document.getElementById("chatMessages");
     const messageInput = document.getElementById("messageInput");
+
+    // Create particles
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 2 + 's';
+      orbParticles.appendChild(particle);
+    }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -257,38 +298,41 @@
 
     async function processMessage(text, isVoice = false) {
       isProcessing = true;
-      
-      // Add user message to chat
       addMessage(text, true);
       
       if (isVoice) {
         statusText.textContent = `Processing: "${text}"`;
       }
 
-      const response = await fetch("/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
-      });
+      try {
+        const response = await fetch("/process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
 
-      const blob = await response.blob();
-      const audioURL = URL.createObjectURL(blob);
-      audio = new Audio(audioURL);
+        const blob = await response.blob();
+        const audioURL = URL.createObjectURL(blob);
+        audio = new Audio(audioURL);
 
-      if (isVoice) {
-        statusText.textContent = "AI is responding...";
-        waveContainer.classList.remove("listening");
+        if (isVoice) {
+          statusText.textContent = "AI is responding...";
+          orbContainer.classList.remove("listening");
+        }
+
+        const aiResponse = decodeURIComponent(response.headers.get('x-ai-response') || "I'm here to help");
+        addMessage(aiResponse, false);
+
+        await new Promise(resolve => {
+          audio.onended = resolve;
+          audio.onerror = resolve;
+          audio.play();
+        });
+      } catch (error) {
+        console.error("Error:", error);
+        statusText.textContent = "An error occurred. Please try again.";
+        addMessage("Sorry, I encountered an error. Please try again.", false);
       }
-
-      // Get the text content from the response headers or a default message
-      const aiResponse = decodeURIComponent(response.headers.get('x-ai-response') || "I'm here to help");
-      addMessage(aiResponse, false);
-
-      await new Promise(resolve => {
-        audio.onended = resolve;
-        audio.onerror = resolve;
-        audio.play();
-      });
 
       isProcessing = false;
       if (sessionActive && isVoice) {
@@ -307,7 +351,6 @@
     async function sendMessage() {
       const text = messageInput.value.trim();
       if (!text) return;
-      
       messageInput.value = '';
       await processMessage(text, false);
     }
@@ -321,7 +364,7 @@
     function listen() {
       if (!sessionActive || isProcessing) return;
       recognition.start();
-      waveContainer.classList.add("listening");
+      orbContainer.classList.add("listening");
       statusText.textContent = "Listening to you...";
     }
 
@@ -339,8 +382,9 @@
     };
 
     recognition.onerror = (e) => {
+      console.error("Recognition error:", e);
       statusText.textContent = "Microphone error: " + e.error;
-      waveContainer.classList.remove("listening");
+      orbContainer.classList.remove("listening");
     };
 
     sessionBtn.onclick = () => {
@@ -353,7 +397,7 @@
         sessionBtn.textContent = "Start Voice Session";
         sessionBtn.classList.remove("active");
         recognition.abort();
-        waveContainer.classList.remove("listening");
+        orbContainer.classList.remove("listening");
         if (audio) audio.pause();
         statusText.textContent = "Session ended";
       }
