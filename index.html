@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>IsyraAI - Voice Therapist</title>
+  <title>IsyraAI - Voice & Chat Therapist</title>
   <style>
     * {
       margin: 0;
@@ -17,26 +17,90 @@
       background: linear-gradient(135deg, #1a1a2e, #16213e);
       color: #fff;
       display: flex;
-      justify-content: center;
-      align-items: center;
     }
 
-    .container {
-      width: 90%;
-      max-width: 600px;
-      text-align: center;
-      padding: 2rem;
+    .sidebar {
+      width: 300px;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-container {
+      width: 100%;
+      height: 60vh;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .message {
+      margin: 0.5rem 0;
+      padding: 0.8rem;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+
+    .user-message {
+      background: cornflowerblue;
+      margin-left: auto;
+    }
+
+    .ai-message {
+      background: rgba(255, 255, 255, 0.2);
+      margin-right: auto;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      margin-right: 1rem;
+    }
+
+    .chat-input button {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 25px;
+      background: cornflowerblue;
+      color: white;
+      cursor: pointer;
     }
 
     .wave-container {
-      position: relative;
-      width: 200px;
-      height: 200px;
+      width: 150px;
+      height: 150px;
       margin: 2rem auto;
+      position: relative;
     }
 
     .wave {
@@ -64,8 +128,8 @@
 
     .core {
       position: absolute;
-      width: 100px;
-      height: 100px;
+      width: 70px;
+      height: 70px;
       background: cornflowerblue;
       border-radius: 50%;
       top: 50%;
@@ -80,37 +144,33 @@
     }
 
     .status {
-      margin: 1.5rem 0;
-      font-size: 1.2rem;
+      text-align: center;
+      margin: 1rem 0;
       color: #a0a0a0;
-      min-height: 2em;
     }
 
     .btn {
       background: cornflowerblue;
       color: white;
       border: none;
-      padding: 1rem 2rem;
-      font-size: 1.1rem;
+      padding: 1rem;
+      font-size: 1rem;
       border-radius: 30px;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(100, 149, 237, 0.3);
     }
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(100, 149, 237, 0.4);
     }
 
     .btn.active {
       background: #ff6b6b;
-      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
     }
 
     h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
+      text-align: center;
+      margin-bottom: 2rem;
       background: linear-gradient(45deg, #fff, #a0a0a0);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -118,25 +178,34 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>IsyraAI Therapist</h1>
-    
+  <div class="sidebar">
+    <h1>IsyraAI</h1>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
     <div class="wave-container" id="waveContainer">
       <div class="wave"></div>
       <div class="wave"></div>
       <div class="wave"></div>
       <div class="core"></div>
     </div>
-
     <div class="status" id="statusText">Ready to start your session</div>
-    
-    <button class="btn" id="sessionToggle">Start Session</button>
+    <button class="btn" id="sessionToggle">Start Voice Session</button>
   </div>
 
   <script>
     const waveContainer = document.getElementById("waveContainer");
     const sessionBtn = document.getElementById("sessionToggle");
     const statusText = document.getElementById("statusText");
+    const chatMessages = document.getElementById("chatMessages");
+    const messageInput = document.getElementById("messageInput");
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -148,9 +217,16 @@
     let isProcessing = false;
     let audio = null;
 
-    async function processTranscript(text) {
+    async function processMessage(text, isVoice = false) {
       isProcessing = true;
-      statusText.textContent = `Processing: "${text}"`;
+      
+      // Add user message to chat
+      addMessage(text, true);
+      
+      if (isVoice) {
+        statusText.textContent = `Processing: "${text}"`;
+      }
+
       const response = await fetch("/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,8 +237,14 @@
       const audioURL = URL.createObjectURL(blob);
       audio = new Audio(audioURL);
 
-      statusText.textContent = "AI is responding...";
-      waveContainer.classList.remove("listening");
+      if (isVoice) {
+        statusText.textContent = "AI is responding...";
+        waveContainer.classList.remove("listening");
+      }
+
+      // Get the text content from the response headers or a default message
+      const aiResponse = response.headers.get('ai-response') || "I'm here to help";
+      addMessage(aiResponse, false);
 
       await new Promise(resolve => {
         audio.onended = resolve;
@@ -171,10 +253,32 @@
       });
 
       isProcessing = false;
-      if (sessionActive) {
+      if (sessionActive && isVoice) {
         listen();
       }
     }
+
+    function addMessage(text, isUser) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+      messageDiv.textContent = text;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+      
+      messageInput.value = '';
+      await processMessage(text, false);
+    }
+
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
 
     function listen() {
       if (!sessionActive || isProcessing) return;
@@ -187,7 +291,7 @@
       if (!sessionActive || isProcessing) return;
       const text = event.results[event.results.length - 1][0].transcript;
       recognition.stop();
-      await processTranscript(text);
+      await processMessage(text, true);
     };
 
     recognition.onend = () => {
@@ -204,11 +308,11 @@
     sessionBtn.onclick = () => {
       sessionActive = !sessionActive;
       if (sessionActive) {
-        sessionBtn.textContent = "End Session";
+        sessionBtn.textContent = "End Voice Session";
         sessionBtn.classList.add("active");
         listen();
       } else {
-        sessionBtn.textContent = "Start Session";
+        sessionBtn.textContent = "Start Voice Session";
         sessionBtn.classList.remove("active");
         recognition.abort();
         waveContainer.classList.remove("listening");

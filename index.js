@@ -75,7 +75,8 @@ Now respond to this client message: ${userText}`
 
     res.set({
       'Content-Type': 'audio/mpeg',
-      'Transfer-Encoding': 'chunked'
+      'Transfer-Encoding': 'chunked',
+      'ai-response': geminiReply
     });
     res.send(Buffer.from(ttsRes.data));
   } catch (err) {
