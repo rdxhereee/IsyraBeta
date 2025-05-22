@@ -37,9 +37,7 @@ Now respond to this client message: ${userText}`
           }]
         }]
       }
-    );
-
-    const aiResponse = geminiRes.data.candidates[0].content.parts[0].text;
+    )  const aiResponse = geminiRes.data.candidates[0].content.parts[0].text;
 
     const ttsRes = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE_ID}`,
