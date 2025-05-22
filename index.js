@@ -40,9 +40,10 @@ Now respond to this client message: ${userText}`
     );
     const aiResponse = geminiRes.data.candidates[0].content.parts[0].text;
 
-    const ttsRes = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE_ID}`,
-      {
+    const ttsRes = await axios({
+      method: 'post',
+      url: `https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE_ID}`,
+      data: {
         text: aiResponse,
         model_id: "eleven_monolingual_v1",
         voice_settings: {
@@ -50,19 +51,19 @@ Now respond to this client message: ${userText}`
           similarity_boost: 0.75
         }
       },
-      {
-        headers: {
-          "xi-api-key": ELEVEN_API_KEY,
-          "Content-Type": "application/json",
-          "Accept": "audio/mpeg"
-        },
-        responseType: "arraybuffer"
+      headers: {
+        "xi-api-key": ELEVEN_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg"
+      },
+      responseType: "arraybuffer",
+      validateStatus: function (status) {
+        return status >= 200 && status < 300;
       }
-    );
+    });
 
-    if (!ttsRes.data || ttsRes.headers['content-type'] !== 'audio/mpeg') {
-      console.error('ElevenLabs response:', ttsRes.data.toString());
-      throw new Error('Invalid audio response from ElevenLabs');
+    if (!ttsRes.data) {
+      throw new Error('No audio data received from ElevenLabs');
     }
 
     res.set({
