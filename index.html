@@ -296,6 +296,15 @@
       box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
     }
 
+    .interrupt-btn {
+      background: #e74c3c;
+      margin-left: 1rem;
+    }
+
+    .interrupt-btn:hover {
+      background: #c0392b;
+    }
+
     h1 {
       text-align: center;
       margin: 1rem 0;
@@ -333,6 +342,7 @@
     </div>
     <div class="status" id="statusText">Ready to start your session</div>
     <button class="btn" id="sessionToggle">Start Voice Session</button>
+    <button class="btn interrupt-btn" id="interruptBtn" style="display: none;">Interrupt</button>
   </div>
 
   <script>
@@ -363,9 +373,26 @@
     let sessionActive = false;
     let isProcessing = false;
     let audio = null;
+    let canInterrupt = true;
+
+    async function interruptSession() {
+      if (audio) {
+        audio.pause();
+        audio = null;
+      }
+      recognition.abort();
+      isProcessing = false;
+      canInterrupt = true;
+      document.getElementById('interruptBtn').style.display = 'none';
+      if (sessionActive) {
+        setTimeout(() => listen(), 300);
+      }
+    }
 
     async function processMessage(text, isVoice = false) {
       isProcessing = true;
+      canInterrupt = true;
+      document.getElementById('interruptBtn').style.display = 'inline-block';
       addMessage(text, true);
       
       if (isVoice) {
@@ -453,6 +480,12 @@
       console.error("Recognition error:", e);
       statusText.textContent = "Microphone error: " + e.error;
       orbContainer.classList.remove("listening");
+    };
+
+    document.getElementById('interruptBtn').onclick = () => {
+      if (canInterrupt) {
+        interruptSession();
+      }
     };
 
     sessionBtn.onclick = () => {
