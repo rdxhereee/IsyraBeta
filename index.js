@@ -66,20 +66,18 @@ Now respond to this client message: ${userText}`
       {
         headers: {
           "xi-api-key": ELEVEN_API_KEY,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "audio/mpeg"
         },
-        responseType: "stream"
+        responseType: "arraybuffer"
       }
     );
 
-    const filePath = path.join(__dirname, "reply.mp3");
-    const writer = fs.createWriteStream(filePath);
-
-    ttsRes.data.pipe(writer);
-
-    writer.on("finish", () => {
-      res.download(filePath, () => fs.unlinkSync(filePath));
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Transfer-Encoding': 'chunked'
     });
+    res.send(Buffer.from(ttsRes.data));
   } catch (err) {
     console.error("Error:", err.response?.data || err.message);
     res.status(500).send("Error processing your request.");
