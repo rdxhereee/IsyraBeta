@@ -311,6 +311,7 @@
           body: JSON.stringify({ text })
         });
 
+        const aiResponse = decodeURIComponent(response.headers.get('X-AI-Response'));
         const blob = await response.blob();
         const audioURL = URL.createObjectURL(blob);
         audio = new Audio(audioURL);
@@ -320,7 +321,6 @@
           orbContainer.classList.remove("listening");
         }
 
-      
         addMessage(aiResponse, false);
 
         await new Promise(resolve => {
