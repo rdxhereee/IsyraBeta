@@ -41,7 +41,7 @@ Now respond to this client message: ${userText}`
     const aiResponse = geminiRes.data.candidates[0].content.parts[0].text;
 
     const ttsRes = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE_ID}/stream`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE_ID}`,
       {
         text: aiResponse,
         model_id: "eleven_monolingual_v1",
@@ -56,14 +56,13 @@ Now respond to this client message: ${userText}`
           "Content-Type": "application/json",
           "Accept": "audio/mpeg"
         },
-        responseType: "arraybuffer",
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity
+        responseType: "arraybuffer"
       }
     );
 
-    if (!ttsRes.data) {
-      throw new Error('No audio data received from ElevenLabs');
+    if (!ttsRes.data || ttsRes.headers['content-type'] !== 'audio/mpeg') {
+      console.error('ElevenLabs response:', ttsRes.data.toString());
+      throw new Error('Invalid audio response from ElevenLabs');
     }
 
     res.set({
