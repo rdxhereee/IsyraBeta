@@ -320,7 +320,7 @@
           orbContainer.classList.remove("listening");
         }
 
-        const aiResponse = decodeURIComponent(response.headers.get('x-ai-response') || "I'm here to help");
+      
         addMessage(aiResponse, false);
 
         await new Promise(resolve => {
